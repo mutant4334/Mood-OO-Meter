@@ -1,101 +1,111 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import json
 import os
-import base64
+import matplotlib.pyplot as plt
 
-# ---------- CONFIG ----------
+# ---------- Config ---------- #
+PASSWORD = "moodowner123"  # Change this to your preferred password
 MOOD_FILE = "moods_data.json"
-PASSWORD = "owner@123"  # Change this to your secret password
 BG_IMAGE = "background.jpg"
 
 MOODS = {
     0: "😊 Happy",
     1: "😢 Sad",
     2: "😠 Angry",
-    3: "🤩 Excited",
-    4: "😌 Calm"
+    3: "😌 Calm",
+    4: "❤️ Loved"
 }
 
-# ---------- CSS ----------
-def set_background(image_file):
-    with open(image_file, "rb") as f:
-        encoded = base64.b64encode(f.read()).decode()
-    css = f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/jpg;base64,{encoded}");
-        background-size: cover;
-        background-attachment: fixed;
-        background-repeat: no-repeat;
-        color: #fff;
-    }}
-    .title {{
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #f8f9fa;
-        text-align: center;
-        margin-bottom: 10px;
-    }}
-    .subtitle {{
-        font-size: 1.5rem;
-        text-align: center;
-        margin-bottom: 30px;
-    }}
-    </style>
-    """
-    st.markdown(css, unsafe_allow_html=True)
+# ---------- CSS for Background ---------- #
+def set_bg_image(image_file):
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/jpg;base64,{image_file}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+        .block-container {{
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 2em;
+            border-radius: 12px;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-# ---------- FILE INIT ----------
-if not os.path.exists(MOOD_FILE):
-    with open(MOOD_FILE, "w") as f:
-        json.dump({str(k): 0 for k in MOODS}, f)
+# ---------- Helper Functions ---------- #
+def load_base64_image(image_path):
+    import base64
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
 
-with open(MOOD_FILE, "r") as f:
-    mood_data = json.load(f)
-
-# ---------- APP UI ----------
-st.set_page_config("Mood Cradle", layout="centered")
-set_background(BG_IMAGE)
-
-st.markdown('<div class="title">🧠 Mood Cradle</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Tap how you feel today 💬</div>', unsafe_allow_html=True)
-
-# ---------- Mood Pie Selection ----------
-fig, ax = plt.subplots()
-labels = [MOODS[int(k)] for k in mood_data.keys()]
-sizes = [mood_data[k] for k in mood_data.keys()]
-colors = ['#f4a261', '#2a9d8f', '#e76f51', '#e9c46a', '#a8dadc']
-explode = [0.1 if k == max(mood_data, key=int) else 0 for k in mood_data.keys()]
-ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, explode=explode)
-ax.axis('equal')
-st.pyplot(fig)
-
-st.markdown("### Select your mood:")
-cols = st.columns(len(MOODS))
-
-for i, mood in MOODS.items():
-    if cols[i].button(mood):
-        mood_data[str(i)] += 1
+def initialize_data():
+    if not os.path.exists(MOOD_FILE):
         with open(MOOD_FILE, "w") as f:
-            json.dump(mood_data, f)
-        st.success(f"✅ You selected: {mood}")
-        st.balloons()
+            json.dump({str(k): 0 for k in MOODS.keys()}, f)
 
-# ---------- Admin View (Results) ----------
-st.markdown("---")
-with st.expander("🔒 Owner Access: View & Reset Results"):
-    pw = st.text_input("Enter password", type="password")
-    if pw == PASSWORD:
-        st.success("Access granted.")
-        st.markdown("### 📊 Current Mood Data:")
-        for i in MOODS:
-            st.write(f"{MOODS[i]}: {mood_data[str(i)]}")
+def load_data():
+    with open(MOOD_FILE, "r") as f:
+        return json.load(f)
 
-        st.markdown("#### 🔁 Reset Data?")
-        if st.button("Reset All Data"):
-            with open(MOOD_FILE, "w") as f:
-                json.dump({str(k): 0 for k in MOODS}, f)
-            st.success("All mood data has been reset.")
-    elif pw:
-        st.error("Incorrect password.")
+def save_data(data):
+    with open(MOOD_FILE, "w") as f:
+        json.dump(data, f)
+
+# ---------- App Begins ---------- #
+st.set_page_config(page_title="Mood-O-Meter", layout="centered")
+initialize_data()
+
+if os.path.exists(BG_IMAGE):
+    set_bg_image(load_base64_image(BG_IMAGE))
+
+st.title("🧠 Mood-O-Meter")
+st.markdown("### How are you feeling today? Pick one:")
+
+mood_data = load_data()
+cols = st.columns(5)
+
+# Mood Selection Buttons
+for i in MOODS:
+    if cols[i].button(MOODS[i]):
+        mood_data[str(i)] += 1
+        save_data(mood_data)
+        st.success(f"You selected: {MOODS[i]} 😊")
+        st.stop()
+
+# Password to view results
+with st.expander("🔒 View Survey Results (Password Protected)"):
+    password_input = st.text_input("Enter password:", type="password")
+    if password_input == PASSWORD:
+        st.subheader("📊 Mood Distribution")
+
+        labels = [MOODS[int(k)] for k in mood_data.keys()]
+        sizes = [mood_data[k] for k in mood_data.keys()]
+
+        # Filter zero-size entries
+        filtered = [(l, s) for l, s in zip(labels, sizes) if s > 0]
+        if filtered:
+            labels, sizes = zip(*filtered)
+            colors = plt.get_cmap('Set3').colors[:len(labels)]
+            explode = [0.05] * len(labels)
+
+            fig, ax = plt.subplots()
+            ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors, explode=explode)
+            ax.axis("equal")
+            st.pyplot(fig)
+        else:
+            st.warning("No mood data yet to show.")
+
+        # Reset Button (Developer Only)
+        with st.expander("🛠️ Developer Tools"):
+            dev_pass = st.text_input("Enter dev password to reset:", type="password", key="dev_pass")
+            if dev_pass == PASSWORD:
+                if st.button("🔁 Reset All Data"):
+                    save_data({str(k): 0 for k in MOODS.keys()})
+                    st.success("All mood data has been reset.")
+    elif password_input:
+        st.error("❌ Incorrect password.")
