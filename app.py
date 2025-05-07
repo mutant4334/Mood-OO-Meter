@@ -2,9 +2,10 @@ import streamlit as st
 import json
 import os
 import matplotlib.pyplot as plt
+import time
 
 # ---------- Config ---------- #
-PASSWORD = "moodowner123"  # Change this to your preferred password
+PASSWORD = "moodowner123"  # Change this
 MOOD_FILE = "moods_data.json"
 BG_IMAGE = "background.jpg"
 
@@ -37,7 +38,7 @@ def set_bg_image(image_file):
         unsafe_allow_html=True
     )
 
-# ---------- Helper Functions ---------- #
+# ---------- Utility Functions ---------- #
 def load_base64_image(image_path):
     import base64
     with open(image_path, "rb") as image_file:
@@ -56,37 +57,37 @@ def save_data(data):
     with open(MOOD_FILE, "w") as f:
         json.dump(data, f)
 
-# ---------- App Begins ---------- #
+# ---------- App Starts ---------- #
 st.set_page_config(page_title="Mood-O-Meter", layout="centered")
 initialize_data()
 
 if os.path.exists(BG_IMAGE):
     set_bg_image(load_base64_image(BG_IMAGE))
 
-st.title("🧠 Mood-O-Meter")
-st.markdown("### How are you feeling today? Pick one:")
+st.title("Mood-O-Meter")
+st.markdown("### How are you feeling today?")
 
+# Realtime live update mechanism
 mood_data = load_data()
 cols = st.columns(5)
 
-# Mood Selection Buttons
 for i in MOODS:
     if cols[i].button(MOODS[i]):
         mood_data[str(i)] += 1
         save_data(mood_data)
-        st.success(f"You selected: {MOODS[i]} 😊")
-        st.stop()
+        st.success(f"Thanks! Your response was recorded anonymously as '{MOODS[i]}'")
+        st.rerun()  # Refresh the page to show realtime chart
 
-# Password to view results
-with st.expander("🔒 View Survey Results (Password Protected)"):
+# ---------- Live Results (Password Protected) ---------- #
+with st.expander("🔒 View Live Results (Password Protected)"):
     password_input = st.text_input("Enter password:", type="password")
     if password_input == PASSWORD:
-        st.subheader("📊 Mood Distribution")
+        st.subheader("📊 Mood Distribution (Realtime)")
 
+        mood_data = load_data()  # Refresh
         labels = [MOODS[int(k)] for k in mood_data.keys()]
         sizes = [mood_data[k] for k in mood_data.keys()]
 
-        # Filter zero-size entries
         filtered = [(l, s) for l, s in zip(labels, sizes) if s > 0]
         if filtered:
             labels, sizes = zip(*filtered)
@@ -94,13 +95,13 @@ with st.expander("🔒 View Survey Results (Password Protected)"):
             explode = [0.05] * len(labels)
 
             fig, ax = plt.subplots()
-            ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors, explode=explode)
+            ax.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90,
+                   colors=colors, explode=explode)
             ax.axis("equal")
             st.pyplot(fig)
         else:
             st.warning("No mood data yet to show.")
 
-        # Reset Button (Developer Only)
         with st.expander("🛠️ Developer Tools"):
             dev_pass = st.text_input("Enter dev password to reset:", type="password", key="dev_pass")
             if dev_pass == PASSWORD:
@@ -109,3 +110,4 @@ with st.expander("🔒 View Survey Results (Password Protected)"):
                     st.success("All mood data has been reset.")
     elif password_input:
         st.error("❌ Incorrect password.")
+st.markdown("**Team Culture | Leadership Development | Talent**")
