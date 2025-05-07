@@ -1,64 +1,101 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 import json
 import os
-from streamlit_lottie import st_lottie
-import matplotlib.pyplot as plt
+import base64
 
-# File paths
+# ---------- CONFIG ----------
 MOOD_FILE = "moods_data.json"
-LOTTIE_FILE = "eleven_moods.json"
+PASSWORD = "owner@123"  # Change this to your secret password
+BG_IMAGE = "background.jpg"
 
-# Mood options with emojis
-MOODS = [
-    "😊 Happy", "😢 Sad", "😠 Angry", "🤩 Excited", "😰 Anxious",
-    "😮 Surprised", "🥱 Bored", "😕 Confused", "❤️ Loved", "🙏 Grateful", "😌 Calm"
-]
+MOODS = {
+    0: "😊 Happy",
+    1: "😢 Sad",
+    2: "😠 Angry",
+    3: "🤩 Excited",
+    4: "😌 Calm"
+}
 
-# Load Lottie file
-def load_lottiefile(filepath):
-    with open(filepath, "r") as f:
-        return json.load(f)
+# ---------- CSS ----------
+def set_background(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+    css = f"""
+    <style>
+    .stApp {{
+        background-image: url("data:image/jpg;base64,{encoded}");
+        background-size: cover;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        color: #fff;
+    }}
+    .title {{
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #f8f9fa;
+        text-align: center;
+        margin-bottom: 10px;
+    }}
+    .subtitle {{
+        font-size: 1.5rem;
+        text-align: center;
+        margin-bottom: 30px;
+    }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
 
-# Initialize mood data if not exists
+# ---------- FILE INIT ----------
 if not os.path.exists(MOOD_FILE):
     with open(MOOD_FILE, "w") as f:
-        json.dump({mood: 0 for mood in MOODS}, f)
+        json.dump({str(k): 0 for k in MOODS}, f)
 
-# Load mood data
 with open(MOOD_FILE, "r") as f:
     mood_data = json.load(f)
 
-# Page configuration
-st.set_page_config(page_title="Mood Cradle", layout="centered")
-st.title("🧠 Newton's Cradle Mood Survey")
-st.markdown("Tap your current **mood** and contribute to the collective vibes ✨")
+# ---------- APP UI ----------
+st.set_page_config("Mood Cradle", layout="centered")
+set_background(BG_IMAGE)
 
-# Show Lottie animation
-lottie_animation = load_lottiefile(LOTTIE_FILE)
-st_lottie(lottie_animation, speed=1, loop=True, height=250)
+st.markdown('<div class="title">🧠 Mood Cradle</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Tap how you feel today 💬</div>', unsafe_allow_html=True)
 
-# Tappable mood buttons
-st.subheader("👇 Tap your current mood:")
-cols = st.columns(4)  # 4 buttons per row
-clicked = False
-
-for i, mood in enumerate(MOODS):
-    if cols[i % 4].button(mood):
-        mood_data[mood] += 1
-        with open(MOOD_FILE, "w") as f:
-            json.dump(mood_data, f)
-        st.success(f"✅ Mood '{mood}' captured!")
-        clicked = True
-        break
-
-# Mood distribution chart
-st.subheader("📊 Collective Mood Vibes")
+# ---------- Mood Pie Selection ----------
 fig, ax = plt.subplots()
-ax.bar(mood_data.keys(), mood_data.values(), color='skyblue')
-ax.set_ylabel("Responses")
-ax.set_title("Mood Distribution")
-plt.xticks(rotation=45, ha='right')
+labels = [MOODS[int(k)] for k in mood_data.keys()]
+sizes = [mood_data[k] for k in mood_data.keys()]
+colors = ['#f4a261', '#2a9d8f', '#e76f51', '#e9c46a', '#a8dadc']
+explode = [0.1 if k == max(mood_data, key=int) else 0 for k in mood_data.keys()]
+ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors, explode=explode)
+ax.axis('equal')
 st.pyplot(fig)
 
-# Footer
-st.caption("🧪 Built with Streamlit | ⚙️ Data is anonymous & updates in real-time.")
+st.markdown("### Select your mood:")
+cols = st.columns(len(MOODS))
+
+for i, mood in MOODS.items():
+    if cols[i].button(mood):
+        mood_data[str(i)] += 1
+        with open(MOOD_FILE, "w") as f:
+            json.dump(mood_data, f)
+        st.success(f"✅ You selected: {mood}")
+        st.balloons()
+
+# ---------- Admin View (Results) ----------
+st.markdown("---")
+with st.expander("🔒 Owner Access: View & Reset Results"):
+    pw = st.text_input("Enter password", type="password")
+    if pw == PASSWORD:
+        st.success("Access granted.")
+        st.markdown("### 📊 Current Mood Data:")
+        for i in MOODS:
+            st.write(f"{MOODS[i]}: {mood_data[str(i)]}")
+
+        st.markdown("#### 🔁 Reset Data?")
+        if st.button("Reset All Data"):
+            with open(MOOD_FILE, "w") as f:
+                json.dump({str(k): 0 for k in MOODS}, f)
+            st.success("All mood data has been reset.")
+    elif pw:
+        st.error("Incorrect password.")
