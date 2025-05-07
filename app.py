@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time
 
 # ---------- Config ---------- #
-PASSWORD = "moodowner123"  # Change this
+PASSWORD = "wheyprotein"  # Change this
 MOOD_FILE = "moods_data.json"
 BG_IMAGE = "background.jpg"
 
