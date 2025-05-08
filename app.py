@@ -55,25 +55,19 @@ def quadrant_button(mood_key):
 st.markdown(
     """
     <style>
-    body {
-        background: linear-gradient(135deg, #f0f4f7, #e1e9ef);
-        font-family: 'Arial', sans-serif;
-    }
-
     .quadrant-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+        gap: 15px;
         margin-top: 20px;
-        padding: 20px;
-        border-radius: 15px;
+        padding: 10px;
     }
-    
+
     .quadrant-button {
         width: 100%;
         height: 150px;
-        border-radius: 15px;
-        font-size: 22px;
+        border-radius: 12px;
+        font-size: 18px;
         font-weight: bold;
         border: none;
         cursor: pointer;
@@ -85,8 +79,34 @@ st.markdown(
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .quadrant-button:focus {
-        outline: none;
+    @media screen and (max-width: 600px) {
+        .quadrant-container {
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 15px;
+        }
+
+        .quadrant-button {
+            font-size: 18px;
+            height: 120px;
+        }
+    }
+
+    .reset-button {
+        background-color: #f44b42;
+        color: white;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .reset-button:hover {
+        background-color: #e0372e;
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     .selected-mood {
@@ -100,43 +120,6 @@ st.markdown(
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .action-button {
-        padding: 12px 20px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        border: none;
-        margin-top: 10px;
-        transition: all 0.3s ease-in-out;
-        width: 100%;
-    }
-
-    .action-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .reset-button {
-        background-color: #FF6347; /* Tomato color */
-        color: white;
-    }
-
-    .summary-button {
-        background-color: #32CD32; /* Lime Green color */
-        color: white;
-    }
-
-    @media screen and (max-width: 600px) {
-        .quadrant-container {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .quadrant-button {
-            font-size: 18px;
-            height: 120px;
-        }
-    }
     </style>
     """, unsafe_allow_html=True
 )
@@ -144,10 +127,9 @@ st.markdown(
 # Create Quadrants in 2x2 grid using the CSS class `quadrant-container`
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
-# Quadrant Buttons with styles
+# Quadrant Buttons
 for mood_key in MOODS:
-    if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True, 
-                 on_click=quadrant_button, args=(mood_key,)):
+    if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
         st.session_state["selected_mood"] = mood_key
         mood_data[mood_key] += 1
         save_data(mood_data)
@@ -157,10 +139,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Show selected mood
 if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
-    st.markdown(
-        f"<div class='selected-mood'>✅ You selected: {MOODS[mood]}</div>", 
-        unsafe_allow_html=True
-    )
+    st.success(f"✅ You selected: {MOODS[mood]}")
 
 # Admin Section (for mood statistics, no identifiers needed)
 with st.expander("🔒 View Mood Summary"):
@@ -174,14 +153,9 @@ with st.expander("🔒 View Mood Summary"):
                 f"<strong>{MOODS.get(mood, 'Unknown Mood')}</strong>: {count}</div>",
                 unsafe_allow_html=True
             )
-        
-        # Reset Button
-        st.markdown(
-            '<button class="action-button reset-button" onclick="window.location.reload()">🔁 Reset All Moods</button>', 
-            unsafe_allow_html=True
-        )
-        if st.button("🔁 Reset All Moods"):
-            save_data({m: 0 for m in MOODS})
+        # Colorful Reset Button
+        if st.button("🔁 Reset All Moods", key="reset", help="Reset all mood counts", 
+                     use_container_width=True, on_click=lambda: save_data({m: 0 for m in MOODS})):
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
