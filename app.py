@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import os
 
-# Configuration
+# Constants
 MOOD_FILE = "moods_data.json"
 PASSWORD = "owner123"
 MOODS = {
@@ -18,7 +18,7 @@ COLORS = {
     "calm": "#90EE90"
 }
 
-# Initialize mood file
+# Initialize or load mood data
 def initialize_data():
     if not os.path.exists(MOOD_FILE):
         with open(MOOD_FILE, "w") as f:
@@ -35,52 +35,51 @@ def save_data(data):
 initialize_data()
 mood_data = load_data()
 
+# Streamlit Page Setup
 st.set_page_config(layout="wide")
-st.markdown("<h1 style='text-align: center;'>🧠 Mood-O-Meter</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align: center;'>Click any colored quadrant to record your mood</h4>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>🧠 Mood-O-Meter</h2>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>Tap any quadrant to record your current mood</h4>", unsafe_allow_html=True)
 
-# Handle mood selection
+# Session state
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-def mood_box(mood_key):
+# Create Quadrant Button
+def quadrant_button(mood_key):
     color = COLORS[mood_key]
     label = MOODS[mood_key]
     with st.form(f"form_{mood_key}"):
-        st.markdown(
-            f"""
-            <button style='height:200px; width:100%; background-color:{color}; border:none; border-radius:10px;
-                    font-size:24px; font-weight:bold; cursor:pointer'>
+        st.markdown(f"""
+            <button style='width: 100%; height: 180px; background-color: {color}; 
+            font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;'>
                 {label}
             </button>
-            """,
-            unsafe_allow_html=True
-        )
-        submitted = st.form_submit_button("")
-        if submitted:
+        """, unsafe_allow_html=True)
+        submit = st.form_submit_button("")
+        if submit:
             st.session_state["selected_mood"] = mood_key
             mood_data[mood_key] += 1
             save_data(mood_data)
 
-# Display 2x2 quadrants as buttons
-row1 = st.columns(2)
-with row1[0]:
-    mood_box("happy")
-with row1[1]:
-    mood_box("sad")
+# Layout: 2x2 responsive on all devices
+col1, col2 = st.columns(2)
+with col1:
+    quadrant_button("happy")
+with col2:
+    quadrant_button("sad")
 
-row2 = st.columns(2)
-with row2[0]:
-    mood_box("angry")
-with row2[1]:
-    mood_box("calm")
+col3, col4 = st.columns(2)
+with col3:
+    quadrant_button("angry")
+with col4:
+    quadrant_button("calm")
 
-# Confirmation
+# Show selected mood
 if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
     st.success(f"✅ You selected: {MOODS[mood]}")
 
-# Admin section
+# Admin Section
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
     if password == PASSWORD:
@@ -97,3 +96,4 @@ with st.expander("🔒 View Mood Summary"):
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
+
