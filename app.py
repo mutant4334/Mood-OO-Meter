@@ -12,10 +12,10 @@ MOODS = {
     "calm": "😌 Calm"
 }
 COLORS = {
-    "happy": "#FFB6C1",   # Light Pink
-    "sad": "#ADD8E6",     # Light Blue
-    "angry": "#FFA07A",   # Light Salmon
-    "calm": "#90EE90"     # Light Green
+    "happy": "#FFB6C1",
+    "sad": "#ADD8E6",
+    "angry": "#FFA07A",
+    "calm": "#90EE90"
 }
 
 # Initialize mood file
@@ -33,79 +33,67 @@ def save_data(data):
         json.dump(data, f)
 
 initialize_data()
-
-# Load current mood data
 mood_data = load_data()
 
 st.set_page_config(layout="wide")
 st.markdown("<h1 style='text-align: center;'>🧠 Mood-O-Meter</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align: center;'>Tap a quadrant to record your mood</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>Click any colored quadrant to record your mood</h4>", unsafe_allow_html=True)
 
-if "mood_selected" not in st.session_state:
-    st.session_state["mood_selected"] = None
+# Handle mood selection
+if "selected_mood" not in st.session_state:
+    st.session_state["selected_mood"] = None
 
-# Layout for 2x2 quadrant buttons
-col1, col2 = st.columns(2)
+def mood_box(mood_key):
+    color = COLORS[mood_key]
+    label = MOODS[mood_key]
+    with st.form(f"form_{mood_key}"):
+        st.markdown(
+            f"""
+            <button style='height:200px; width:100%; background-color:{color}; border:none; border-radius:10px;
+                    font-size:24px; font-weight:bold; cursor:pointer'>
+                {label}
+            </button>
+            """,
+            unsafe_allow_html=True
+        )
+        submitted = st.form_submit_button("")
+        if submitted:
+            st.session_state["selected_mood"] = mood_key
+            mood_data[mood_key] += 1
+            save_data(mood_data)
 
-with col1:
-    if st.button(MOODS["happy"], use_container_width=True):
-        st.session_state["mood_selected"] = "happy"
-        mood_data["happy"] += 1
-        save_data(mood_data)
+# Display 2x2 quadrants as buttons
+row1 = st.columns(2)
+with row1[0]:
+    mood_box("happy")
+with row1[1]:
+    mood_box("sad")
 
-    st.markdown(
-        f"<div style='height:200px; background-color:{COLORS['happy']}; border-radius:10px;'></div>",
-        unsafe_allow_html=True
-    )
-
-    if st.button(MOODS["angry"], use_container_width=True):
-        st.session_state["mood_selected"] = "angry"
-        mood_data["angry"] += 1
-        save_data(mood_data)
-
-    st.markdown(
-        f"<div style='height:200px; background-color:{COLORS['angry']}; border-radius:10px;'></div>",
-        unsafe_allow_html=True
-    )
-
-with col2:
-    if st.button(MOODS["sad"], use_container_width=True):
-        st.session_state["mood_selected"] = "sad"
-        mood_data["sad"] += 1
-        save_data(mood_data)
-
-    st.markdown(
-        f"<div style='height:200px; background-color:{COLORS['sad']}; border-radius:10px;'></div>",
-        unsafe_allow_html=True
-    )
-
-    if st.button(MOODS["calm"], use_container_width=True):
-        st.session_state["mood_selected"] = "calm"
-        mood_data["calm"] += 1
-        save_data(mood_data)
-
-    st.markdown(
-        f"<div style='height:200px; background-color:{COLORS['calm']}; border-radius:10px;'></div>",
-        unsafe_allow_html=True
-    )
+row2 = st.columns(2)
+with row2[0]:
+    mood_box("angry")
+with row2[1]:
+    mood_box("calm")
 
 # Confirmation
-if st.session_state["mood_selected"]:
-    mood = st.session_state["mood_selected"]
-    st.success(f"✅ Your mood '{MOODS[mood]}' has been recorded.")
+if st.session_state["selected_mood"]:
+    mood = st.session_state["selected_mood"]
+    st.success(f"✅ You selected: {MOODS[mood]}")
 
-# Admin section for results
+# Admin section
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
     if password == PASSWORD:
-        mood_data = load_data()
         st.subheader("📊 Mood Count")
+        mood_data = load_data()
         for mood, count in mood_data.items():
-            st.markdown(f"<div style='background-color:{COLORS[mood]}; padding:10px; margin:5px; border-radius:5px;'>"
-                        f"<strong>{MOODS[mood]}</strong>: {count}</div>", unsafe_allow_html=True)
-
+            st.markdown(
+                f"<div style='background-color:{COLORS[mood]}; padding:10px; margin:5px; border-radius:5px;'>"
+                f"<strong>{MOODS[mood]}</strong>: {count}</div>",
+                unsafe_allow_html=True
+            )
         if st.button("🔁 Reset All Moods"):
             save_data({m: 0 for m in MOODS})
-            st.success("✅ All mood counts reset.")
+            st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
