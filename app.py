@@ -62,23 +62,55 @@ def quadrant_button(mood_key):
             save_data(mood_data)
 
 # Layout: 2x2 responsive on all devices
-# Use columns to ensure the quadrants are in a 2x2 grid
-col1, col2 = st.columns(2)  # Create 2 columns for the first row
-col3, col4 = st.columns(2)  # Create 2 columns for the second row
+# CSS styling to ensure 2x2 layout on both desktop and mobile
+st.markdown(
+    """
+    <style>
+    /* Ensure all quadrants are in a 2x2 grid */
+    .quadrant-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);  /* 2 columns */
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    /* Make the button divs responsive */
+    .quadrant-button {
+        width: 100%;
+        height: 150px;
+        border-radius: 12px;
+        font-size: 22px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+    }
 
-# First row of quadrants
-with col1:
-    quadrant_button("happy")
+    /* Additional styling to make it work well on mobile */
+    @media screen and (max-width: 600px) {
+        .quadrant-container {
+            grid-template-columns: 1fr 1fr;  /* Stack 2 columns */
+        }
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
 
-with col2:
-    quadrant_button("sad")
+# Create Quadrants in 2x2 grid using the CSS class `quadrant-container`
+st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
-# Second row of quadrants
-with col3:
-    quadrant_button("angry")
+# Quadrant Buttons
+with st.container():
+    for mood_key in MOODS:
+        st.markdown(f"""
+            <div class="quadrant-button" style="background-color: {COLORS[mood_key]};">
+                <button style="width: 100%; height: 100%; background-color: transparent; 
+                color: black; font-size: 22px; font-weight: bold; border-radius: 12px; border: none;">
+                    {MOODS[mood_key]}
+                </button>
+            </div>
+        """, unsafe_allow_html=True)
 
-with col4:
-    quadrant_button("calm")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Show selected mood
 if st.session_state["selected_mood"]:
