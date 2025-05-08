@@ -50,7 +50,7 @@ def quadrant_button(mood_key):
     label = MOODS[mood_key]
     with st.form(f"form_{mood_key}"):
         st.markdown(f"""
-            <button style='width: 100%; height: 180px; background-color: {color}; 
+            <button style='width: 100%; height: 150px; background-color: {color}; 
             font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;'>
                 {label}
             </button>
@@ -62,17 +62,36 @@ def quadrant_button(mood_key):
             save_data(mood_data)
 
 # Layout: 2x2 responsive on all devices
-col1, col2 = st.columns(2)
-with col1:
-    quadrant_button("happy")
-with col2:
-    quadrant_button("sad")
+st.markdown("""
+    <style>
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: center;
+    }
+    .quadrant {
+        width: 45%; /* Adjust for mobile responsiveness */
+        height: 150px;
+    }
+    @media only screen and (max-width: 600px) {
+        .quadrant {
+            width: 90%;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-col3, col4 = st.columns(2)
-with col3:
-    quadrant_button("angry")
-with col4:
-    quadrant_button("calm")
+# Create a container for 2x2 layout
+st.markdown('<div class="container">', unsafe_allow_html=True)
+
+# Quadrants layout in a flexible manner
+for i, mood_key in enumerate(MOODS):
+    st.markdown(f'<div class="quadrant">', unsafe_allow_html=True)
+    quadrant_button(mood_key)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Show selected mood
 if st.session_state["selected_mood"]:
@@ -96,4 +115,3 @@ with st.expander("🔒 View Mood Summary"):
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
-
