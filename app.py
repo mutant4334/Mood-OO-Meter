@@ -36,11 +36,8 @@ mood_data = load_data()
 
 # Streamlit Page Setup
 st.set_page_config(layout="wide")
-st.markdown("<h4 style='text-align: center;'>
-How are you feeling Today</h4>", unsafe_allow_html=True)
-
-st.markdown("---")
-st.markdown("**Anonymous | Realtime  | Secure**")
+st.markdown("<h4 style='text-align: center;'>How are you feeling today</h4>", unsafe_allow_html=True)
+st.markdown("<h5 style='text-align: center; font-weight: bold;'>Anonymous | Realtime | Secure</h5>", unsafe_allow_html=True)
 
 # Session state for real-time updates
 if "selected_mood" not in st.session_state:
