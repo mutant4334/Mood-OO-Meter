@@ -55,28 +55,54 @@ def quadrant_button(mood_key):
 st.markdown(
     """
     <style>
+    body {
+        background: linear-gradient(135deg, #f0f4f7, #e1e9ef);
+        font-family: 'Arial', sans-serif;
+    }
+
     .quadrant-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 20px;
         margin-top: 20px;
-        padding: 10px;
+        padding: 20px;
+        border-radius: 15px;
     }
     
     .quadrant-button {
         width: 100%;
         height: 150px;
-        border-radius: 12px;
-        font-size: 18px;
+        border-radius: 15px;
+        font-size: 22px;
         font-weight: bold;
         border: none;
         cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .quadrant-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .quadrant-button:focus {
+        outline: none;
+    }
+
+    .selected-mood {
+        padding: 10px;
+        font-size: 18px;
+        color: #444;
+        background-color: #ffffff;
+        border-radius: 10px;
+        margin-top: 20px;
+        border: 1px solid #d1d1d1;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     @media screen and (max-width: 600px) {
         .quadrant-container {
             grid-template-columns: repeat(2, 1fr);
-            grid-gap: 15px;
         }
 
         .quadrant-button {
@@ -91,9 +117,10 @@ st.markdown(
 # Create Quadrants in 2x2 grid using the CSS class `quadrant-container`
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
-# Quadrant Buttons
+# Quadrant Buttons with styles
 for mood_key in MOODS:
-    if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
+    if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True, 
+                 on_click=quadrant_button, args=(mood_key,)):
         st.session_state["selected_mood"] = mood_key
         mood_data[mood_key] += 1
         save_data(mood_data)
@@ -103,7 +130,10 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Show selected mood
 if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
-    st.success(f"✅ You selected: {MOODS[mood]}")
+    st.markdown(
+        f"<div class='selected-mood'>✅ You selected: {MOODS[mood]}</div>", 
+        unsafe_allow_html=True
+    )
 
 # Admin Section (for mood statistics, no identifiers needed)
 with st.expander("🔒 View Mood Summary"):
