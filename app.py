@@ -1,7 +1,6 @@
 import streamlit as st
 import json
 import os
-import matplotlib.pyplot as plt
 
 # Configuration
 MOOD_FILE = "moods_data.json"
@@ -13,10 +12,10 @@ MOODS = {
     "calm": "😌 Calm"
 }
 COLORS = {
-    "happy": "#FFB6C1",
-    "sad": "#ADD8E6",
-    "angry": "#FFA07A",
-    "calm": "#90EE90"
+    "happy": "#FFB6C1",   # Light Pink
+    "sad": "#ADD8E6",     # Light Blue
+    "angry": "#FFA07A",   # Light Salmon
+    "calm": "#90EE90"     # Light Green
 }
 
 # Initialize mood file
@@ -40,13 +39,12 @@ mood_data = load_data()
 
 st.set_page_config(layout="wide")
 st.markdown("<h1 style='text-align: center;'>🧠 Mood-O-Meter</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center;'>Click a quadrant to record your mood</h3>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>Tap a quadrant to record your mood</h4>", unsafe_allow_html=True)
 
-# State variable to track mood selection
 if "mood_selected" not in st.session_state:
     st.session_state["mood_selected"] = None
 
-# Create 4 quadrant layout using columns
+# Layout for 2x2 quadrant buttons
 col1, col2 = st.columns(2)
 
 with col1:
@@ -54,47 +52,60 @@ with col1:
         st.session_state["mood_selected"] = "happy"
         mood_data["happy"] += 1
         save_data(mood_data)
+
+    st.markdown(
+        f"<div style='height:200px; background-color:{COLORS['happy']}; border-radius:10px;'></div>",
+        unsafe_allow_html=True
+    )
+
     if st.button(MOODS["angry"], use_container_width=True):
         st.session_state["mood_selected"] = "angry"
         mood_data["angry"] += 1
         save_data(mood_data)
+
+    st.markdown(
+        f"<div style='height:200px; background-color:{COLORS['angry']}; border-radius:10px;'></div>",
+        unsafe_allow_html=True
+    )
 
 with col2:
     if st.button(MOODS["sad"], use_container_width=True):
         st.session_state["mood_selected"] = "sad"
         mood_data["sad"] += 1
         save_data(mood_data)
+
+    st.markdown(
+        f"<div style='height:200px; background-color:{COLORS['sad']}; border-radius:10px;'></div>",
+        unsafe_allow_html=True
+    )
+
     if st.button(MOODS["calm"], use_container_width=True):
         st.session_state["mood_selected"] = "calm"
         mood_data["calm"] += 1
         save_data(mood_data)
 
-# Show confirmation
+    st.markdown(
+        f"<div style='height:200px; background-color:{COLORS['calm']}; border-radius:10px;'></div>",
+        unsafe_allow_html=True
+    )
+
+# Confirmation
 if st.session_state["mood_selected"]:
     mood = st.session_state["mood_selected"]
     st.success(f"✅ Your mood '{MOODS[mood]}' has been recorded.")
 
-# Developer/admin results section
-with st.expander("🔒 View Live Results"):
+# Admin section for results
+with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
     if password == PASSWORD:
-        st.subheader("📊 Mood Distribution")
         mood_data = load_data()
-        labels = [MOODS[m] for m in MOODS]
-        values = [mood_data.get(m, 0) for m in MOODS]
+        st.subheader("📊 Mood Count")
+        for mood, count in mood_data.items():
+            st.markdown(f"<div style='background-color:{COLORS[mood]}; padding:10px; margin:5px; border-radius:5px;'>"
+                        f"<strong>{MOODS[mood]}</strong>: {count}</div>", unsafe_allow_html=True)
 
-        fig, ax = plt.subplots()
-        bars = ax.bar(labels, values, color=[COLORS[m] for m in MOODS])
-        ax.set_ylabel("Votes")
-        ax.set_title("Mood Counts")
-        for bar in bars:
-            yval = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2.0, yval + 0.2, int(yval), ha='center', va='bottom')
-
-        st.pyplot(fig)
-
-        if st.button("🔁 Reset All Responses"):
+        if st.button("🔁 Reset All Moods"):
             save_data({m: 0 for m in MOODS})
-            st.success("✅ Mood responses have been reset.")
+            st.success("✅ All mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
