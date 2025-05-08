@@ -44,8 +44,8 @@ if "selected_mood" not in st.session_state:
 
 # Function to handle quadrant button clicks and update mood data
 def quadrant_button(mood_key):
-    color = COLORS[mood_key]
-    label = MOODS[mood_key]
+    color = COLORS.get(mood_key, "#FFFFFF")  # Default to white if the key is not found
+    label = MOODS.get(mood_key, "Unknown Mood")  # Default to "Unknown Mood" if the key is not found
     with st.form(f"form_{mood_key}"):
         st.markdown(f"""
             <button style='width: 100%; height: 150px; background-color: {color}; 
@@ -102,10 +102,10 @@ st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 # Quadrant Buttons
 for mood_key in MOODS:
     st.markdown(f"""
-        <div class="quadrant-button" style="background-color: {COLORS[mood_key]};">
+        <div class="quadrant-button" style="background-color: {COLORS.get(mood_key, '#FFFFFF')};">
             <button style="width: 100%; height: 100%; background-color: transparent; 
             color: black; font-size: 18px; font-weight: bold; border-radius: 12px; border: none;">
-                {MOODS[mood_key]}
+                {MOODS.get(mood_key, 'Unknown Mood')}
             </button>
         </div>
     """, unsafe_allow_html=True)
@@ -125,8 +125,8 @@ with st.expander("🔒 View Mood Summary"):
         mood_data = load_data()
         for mood, count in mood_data.items():
             st.markdown(
-                f"<div style='background-color:{COLORS[mood]}; padding:10px; margin:5px; border-radius:5px;'>"
-                f"<strong>{MOODS[mood]}</strong>: {count}</div>",
+                f"<div style='background-color:{COLORS.get(mood, '#FFFFFF')}; padding:10px; margin:5px; border-radius:5px;'>"
+                f"<strong>{MOODS.get(mood, 'Unknown Mood')}</strong>: {count}</div>",
                 unsafe_allow_html=True
             )
         if st.button("🔁 Reset All Moods"):
