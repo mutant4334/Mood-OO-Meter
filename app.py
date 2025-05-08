@@ -100,6 +100,33 @@ st.markdown(
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
+    .action-button {
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        margin-top: 10px;
+        transition: all 0.3s ease-in-out;
+        width: 100%;
+    }
+
+    .action-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .reset-button {
+        background-color: #FF6347; /* Tomato color */
+        color: white;
+    }
+
+    .summary-button {
+        background-color: #32CD32; /* Lime Green color */
+        color: white;
+    }
+
     @media screen and (max-width: 600px) {
         .quadrant-container {
             grid-template-columns: repeat(2, 1fr);
@@ -147,6 +174,12 @@ with st.expander("🔒 View Mood Summary"):
                 f"<strong>{MOODS.get(mood, 'Unknown Mood')}</strong>: {count}</div>",
                 unsafe_allow_html=True
             )
+        
+        # Reset Button
+        st.markdown(
+            '<button class="action-button reset-button" onclick="window.location.reload()">🔁 Reset All Moods</button>', 
+            unsafe_allow_html=True
+        )
         if st.button("🔁 Reset All Moods"):
             save_data({m: 0 for m in MOODS})
             st.success("✅ Mood counts reset.")
