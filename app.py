@@ -1,50 +1,21 @@
 import streamlit as st
 import json
 import os
-import matplotlib.pyplot as plt
-import base64
 
-# ---------- Config ---------- #
-PASSWORD = "wheyprotein"  # 🔒 Change this password
+# ---------- Configuration ---------- #
 MOOD_FILE = "moods_data.json"
-BG_IMAGE = "background.jpg"
-
 MOODS = {
-    0: "😊 Happy",
-    1: "😢 Sad",
-    2: "😠 Angry",
-    3: "😌 Calm",
-    4: "❤️ Loved"
+    "top-left": ("😊 Happy", "#FFB6C1"),
+    "top-right": ("😢 Sad", "#ADD8E6"),
+    "bottom-left": ("😠 Angry", "#FFA07A"),
+    "bottom-right": ("😌 Calm", "#90EE90")
 }
 
-# ---------- CSS for Background ---------- #
-def set_bg_image(image_path):
-    with open(image_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode()
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded_string}");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }}
-        .block-container {{
-            background-color: rgba(255, 255, 255, 0.85);
-            padding: 2em;
-            border-radius: 12px;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-# ---------- Utility Functions ---------- #
+# ---------- Initialize Data ---------- #
 def initialize_data():
     if not os.path.exists(MOOD_FILE):
         with open(MOOD_FILE, "w") as f:
-            json.dump({str(k): 0 for k in MOODS.keys()}, f)
+            json.dump({label: 0 for label in MOODS.keys()}, f)
 
 def load_data():
     with open(MOOD_FILE, "r") as f:
@@ -54,59 +25,73 @@ def save_data(data):
     with open(MOOD_FILE, "w") as f:
         json.dump(data, f)
 
-# ---------- App Starts ---------- #
-st.set_page_config(page_title="Mood-O-Meter", layout="centered")
+# ---------- Start App ---------- #
+st.set_page_config(page_title="Mood Quadrant", layout="wide")
 initialize_data()
-
-if os.path.exists(BG_IMAGE):
-    set_bg_image(BG_IMAGE)
-
-st.title("Mood-O-Meter")
-st.markdown("### How are you feeling today?")
-
-# Realtime mood submission
 mood_data = load_data()
-cols = st.columns(5)
 
-for i in MOODS:
-    if cols[i].button(MOODS[i]):
-        mood_data[str(i)] += 1
+# ---------- Layout ---------- #
+st.markdown(
+    """
+    <style>
+    .quad-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        height: 70vh;
+        width: 100%;
+        gap: 10px;
+    }
+    .quad {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #000000;
+        border-radius: 12px;
+        cursor: pointer;
+    }
+    .top-left { background-color: #FFB6C1; }
+    .top-right { background-color: #ADD8E6; }
+    .bottom-left { background-color: #FFA07A; }
+    .bottom-right { background-color: #90EE90; }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+st.title("🧠 Mood-O-Meter")
+st.markdown("### Tap your current mood:")
+
+# ---------- Quadrant Buttons (Using HTML + Streamlit Buttons) ---------- #
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("😊 Happy", key="top-left"):
+        mood_data["top-left"] += 1
         save_data(mood_data)
-        st.success(f"Thanks! Your response was recorded anonymously as '{MOODS[i]}'")
-        st.rerun()
+        st.success("Thanks for your response: 😊 Happy")
 
-# ---------- Password-Protected Live View ---------- #
-with st.expander("🔒 View Live Results (Password Protected)"):
-    password_input = st.text_input("Enter password:", type="password")
-    if password_input == PASSWORD:
-        st.subheader("📊 Mood Distribution (Realtime)")
+with col2:
+    if st.button("😢 Sad", key="top-right"):
+        mood_data["top-right"] += 1
+        save_data(mood_data)
+        st.success("Thanks for your response: 😢 Sad")
 
-        mood_data = load_data()
-        labels = [MOODS[int(k)] for k in mood_data.keys()]
-        values = [mood_data[k] for k in mood_data.keys()]
+col3, col4 = st.columns(2)
+with col3:
+    if st.button("😠 Angry", key="bottom-left"):
+        mood_data["bottom-left"] += 1
+        save_data(mood_data)
+        st.success("Thanks for your response: 😠 Angry")
 
-        filtered = [(label, value) for label, value in zip(labels, values) if value > 0]
-        if filtered:
-            labels, values = zip(*filtered)
+with col4:
+    if st.button("😌 Calm", key="bottom-right"):
+        mood_data["bottom-right"] += 1
+        save_data(mood_data)
+        st.success("Thanks for your response: 😌 Calm")
 
-            fig, ax = plt.subplots()
-            ax.barh(labels, values, color="skyblue")
-            ax.set_xlabel("Votes")
-            ax.set_title("Current Mood Status")
-            st.pyplot(fig)
-        else:
-            st.info("No mood data available yet.")
-    elif password_input:
-        st.error("❌ Incorrect password.")
-
-# ---------- Developer Tools (Standalone) ---------- #
-st.markdown("### 🛠️ Developer Tools")
-dev_pass = st.text_input("Enter dev password to reset data:", type="password", key="dev_pass")
-if dev_pass == PASSWORD:
-    if st.button("🔁 Reset All Data"):
-        save_data({str(k): 0 for k in MOODS.keys()})
-        st.success("All mood data has been reset.")
-
-# ---------- Footer ---------- #
-st.markdown("---")
-st.markdown("**Team Culture | Leadership Development | Talent**")
+# ---------- Optional: Display Totals ---------- #
+with st.expander("📊 Mood Count Summary"):
+    for k, (label, _) in MOODS.items():
+        st.write(f"{label}: {mood_data[k]}")
