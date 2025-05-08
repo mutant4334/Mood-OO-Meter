@@ -35,41 +35,29 @@ def save_data(data):
 initialize_data()
 mood_data = load_data()
 
-# ---------- Page Settings ---------- #
+# ---------- Page Setup ---------- #
 st.set_page_config(layout="wide")
-st.title("🧠 Mood-O-Meter")
-st.markdown("### Tap a quadrant to record your mood anonymously")
+st.markdown("<h1 style='text-align: center;'>🧠 Mood-O-Meter</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Tap any quadrant to record your mood anonymously</h3>", unsafe_allow_html=True)
 
-# ---------- Render 2x2 Quadrant UI ---------- #
+# ---------- Inject Hidden Input Field ---------- #
+mood_selected = st.experimental_get_query_params().get("mood", [None])[0]
+
+# ---------- Render Quadrants with JS ---------- #
 html_code = f"""
-<div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 60vh; width: 100vw;">
-    <div onclick="sendMood('happy')" style="background-color:{COLORS['happy']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['happy']}</div>
-    <div onclick="sendMood('sad')" style="background-color:{COLORS['sad']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['sad']}</div>
-    <div onclick="sendMood('angry')" style="background-color:{COLORS['angry']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['angry']}</div>
-    <div onclick="sendMood('calm')" style="background-color:{COLORS['calm']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['calm']}</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 70vh; width: 100vw; cursor:pointer;">
+    <div onclick="window.location.search='?mood=happy'" style="background-color:{COLORS['happy']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['happy']}</div>
+    <div onclick="window.location.search='?mood=sad'" style="background-color:{COLORS['sad']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['sad']}</div>
+    <div onclick="window.location.search='?mood=angry'" style="background-color:{COLORS['angry']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['angry']}</div>
+    <div onclick="window.location.search='?mood=calm'" style="background-color:{COLORS['calm']}; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border:2px solid white;">{MOODS['calm']}</div>
 </div>
-
-<script>
-    const moodInput = window.parent.document.querySelector("input[name='mood_input']")
-    function sendMood(mood) {{
-        moodInput.value = mood;
-        moodInput.dispatchEvent(new Event("input", {{ bubbles: true }}));
-    }}
-</script>
 """
 
-# ---------- Hidden Communication with JS ---------- #
-mood_selected = st.text_input("mood_input", label_visibility="collapsed")
-components.html(html_code, height=500)
+components.html(html_code, height=550)
 
-# ---------- Handle Mood Response ---------- #
-if mood_selected and mood_selected in MOODS:
+# ---------- Handle Mood Click ---------- #
+if mood_selected in MOODS:
     mood_data[mood_selected] += 1
     save_data(mood_data)
-    st.success(f"✅ Thanks! Your mood '{MOODS[mood_selected]}' was recorded anonymously.")
-    st.experimental_rerun()
-
-# ---------- Mood Summary (Optional) ---------- #
-with st.expander("📊 View Mood Summary"):
-    for mood, count in mood_data.items():
-        st.write(f"{MOODS[mood]}: {count}")
+    st.success(f"✅ Thanks! Your mood '{MOODS[mood_selected]}' was recorded.")
+    st.experimental_set_query_params()  # Clear mood from URL
