@@ -70,7 +70,7 @@ st.markdown(
     .quadrant-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);  /* 2 columns */
-        gap: 10px;
+        gap: 20px;
         margin-top: 20px;
     }
     
@@ -88,7 +88,8 @@ st.markdown(
     /* Additional styling to make it work well on mobile */
     @media screen and (max-width: 600px) {
         .quadrant-container {
-            grid-template-columns: 1fr 1fr;  /* Stack 2 columns */
+            grid-template-columns: repeat(2, 1fr);  /* Stack 2 columns horizontally */
+            grid-gap: 10px;  /* Adjust space between buttons */
         }
     }
     </style>
@@ -99,16 +100,15 @@ st.markdown(
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
 # Quadrant Buttons
-with st.container():
-    for mood_key in MOODS:
-        st.markdown(f"""
-            <div class="quadrant-button" style="background-color: {COLORS[mood_key]};">
-                <button style="width: 100%; height: 100%; background-color: transparent; 
-                color: black; font-size: 22px; font-weight: bold; border-radius: 12px; border: none;">
-                    {MOODS[mood_key]}
-                </button>
-            </div>
-        """, unsafe_allow_html=True)
+for mood_key in MOODS:
+    st.markdown(f"""
+        <div class="quadrant-button" style="background-color: {COLORS[mood_key]};">
+            <button style="width: 100%; height: 100%; background-color: transparent; 
+            color: black; font-size: 22px; font-weight: bold; border-radius: 12px; border: none;">
+                {MOODS[mood_key]}
+            </button>
+        </div>
+    """, unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
