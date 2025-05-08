@@ -38,7 +38,7 @@ mood_data = load_data()
 st.set_page_config(layout="wide")
 st.markdown("<h4 style='text-align: center;'>Tap any quadrant to record your current mood</h4>", unsafe_allow_html=True)
 
-# Session state for real-time updates (no need to store names or identifiers)
+# Session state for real-time updates
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
@@ -46,18 +46,10 @@ if "selected_mood" not in st.session_state:
 def quadrant_button(mood_key):
     color = COLORS.get(mood_key, "#FFFFFF")  # Default to white if the key is not found
     label = MOODS.get(mood_key, "Unknown Mood")  # Default to "Unknown Mood" if the key is not found
-    with st.form(f"form_{mood_key}"):
-        st.markdown(f"""
-            <button style='width: 100%; height: 150px; background-color: {color}; 
-            font-size: 22px; font-weight: bold; border: none; border-radius: 12px; cursor: pointer;'>
-                {label}
-            </button>
-        """, unsafe_allow_html=True)
-        submit = st.form_submit_button("")
-        if submit:
-            st.session_state["selected_mood"] = mood_key
-            mood_data[mood_key] += 1
-            save_data(mood_data)
+    if st.button(label, key=mood_key, help=label, use_container_width=True):
+        st.session_state["selected_mood"] = mood_key
+        mood_data[mood_key] += 1
+        save_data(mood_data)
 
 # Layout: 2x2 responsive on mobile only
 st.markdown(
