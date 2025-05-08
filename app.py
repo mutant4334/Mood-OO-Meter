@@ -93,14 +93,10 @@ st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
 # Quadrant Buttons
 for mood_key in MOODS:
-    st.markdown(f"""
-        <div class="quadrant-button" style="background-color: {COLORS.get(mood_key, '#FFFFFF')};">
-            <button style="width: 100%; height: 100%; background-color: transparent; 
-            color: black; font-size: 18px; font-weight: bold; border-radius: 12px; border: none;">
-                {MOODS.get(mood_key, 'Unknown Mood')}
-            </button>
-        </div>
-    """, unsafe_allow_html=True)
+    if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
+        st.session_state["selected_mood"] = mood_key
+        mood_data[mood_key] += 1
+        save_data(mood_data)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
