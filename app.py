@@ -37,7 +37,6 @@ mood_data = load_data()
 
 # Streamlit Page Setup
 st.set_page_config(layout="wide")
-st.markdown("<h2 style='text-align: center;'>🧠 Mood-O-Meter</h2>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align: center;'>Tap any quadrant to record your current mood</h4>", unsafe_allow_html=True)
 
 # Session state
