@@ -160,3 +160,5 @@ with st.expander("🔒 View Mood Summary"):
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
+st.markdown("---")
+st.markdown("**Team Culture | Leadership Development | Talent**")
