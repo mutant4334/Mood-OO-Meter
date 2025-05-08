@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # ---------- Configuration ---------- #
 MOOD_FILE = "moods_data.json"
-PASSWORD = "owner123"  # 🔐 Change your password here
+PASSWORD = "owner123"  # Change as needed
 MOODS = {
     "happy": "😊 Happy",
     "sad": "😢 Sad",
@@ -43,7 +43,8 @@ st.markdown("<h1 style='text-align: center;'>🧠 Mood-O-Meter</h1>", unsafe_all
 st.markdown("<h3 style='text-align: center;'>Tap any quadrant to record your mood anonymously</h3>", unsafe_allow_html=True)
 
 # ---------- Read Mood from Query Param ---------- #
-mood_selected = st.experimental_get_query_params().get("mood", [None])[0]
+query_params = st.query_params
+mood_selected = query_params.get("mood", None)
 
 # ---------- Render Quadrants ---------- #
 html_code = f"""
@@ -58,10 +59,13 @@ components.html(html_code, height=550)
 
 # ---------- Show Confirmation ---------- #
 if mood_selected in MOODS:
+    mood_data = load_data()  # Reload in case of race condition
+    if mood_selected not in mood_data:
+        mood_data[mood_selected] = 0
     mood_data[mood_selected] += 1
     save_data(mood_data)
     st.success(f"✅ Thanks! Your mood **{MOODS[mood_selected]}** was recorded.")
-    st.experimental_set_query_params()  # Clear URL to avoid double-counting
+    st.query_params.clear()  # Reset query params to avoid re-submission
 
 # ---------- Password-Protected Results ---------- #
 with st.expander("🔒 View Live Results"):
@@ -71,7 +75,7 @@ with st.expander("🔒 View Live Results"):
         mood_data = load_data()
 
         labels = [MOODS[m] for m in MOODS]
-        values = [mood_data[m] for m in MOODS]
+        values = [mood_data.get(m, 0) for m in MOODS]
 
         fig, ax = plt.subplots()
         bars = ax.bar(labels, values, color=[COLORS[m] for m in MOODS])
