@@ -62,36 +62,23 @@ def quadrant_button(mood_key):
             save_data(mood_data)
 
 # Layout: 2x2 responsive on all devices
-st.markdown("""
-    <style>
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
-    }
-    .quadrant {
-        width: 45%; /* Adjust for mobile responsiveness */
-        height: 150px;
-    }
-    @media only screen and (max-width: 600px) {
-        .quadrant {
-            width: 90%;
-        }
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Use columns to ensure the quadrants are in a 2x2 grid
+col1, col2 = st.columns(2)  # Create 2 columns for the first row
+col3, col4 = st.columns(2)  # Create 2 columns for the second row
 
-# Create a container for 2x2 layout
-st.markdown('<div class="container">', unsafe_allow_html=True)
+# First row of quadrants
+with col1:
+    quadrant_button("happy")
 
-# Quadrants layout in a flexible manner
-for i, mood_key in enumerate(MOODS):
-    st.markdown(f'<div class="quadrant">', unsafe_allow_html=True)
-    quadrant_button(mood_key)
-    st.markdown('</div>', unsafe_allow_html=True)
+with col2:
+    quadrant_button("sad")
 
-st.markdown('</div>', unsafe_allow_html=True)
+# Second row of quadrants
+with col3:
+    quadrant_button("angry")
+
+with col4:
+    quadrant_button("calm")
 
 # Show selected mood
 if st.session_state["selected_mood"]:
