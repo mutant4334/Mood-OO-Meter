@@ -61,8 +61,8 @@ def quadrant_button(mood_key):
             mood_data[mood_key] += 1
             save_data(mood_data)
 
-# Layout: 2x2 responsive on all devices
-# CSS styling to ensure 2x2 layout on both desktop and mobile
+# Layout: 2x2 responsive on mobile only
+# CSS styling to ensure 2x2 layout on mobile screens
 st.markdown(
     """
     <style>
@@ -70,8 +70,9 @@ st.markdown(
     .quadrant-container {
         display: grid;
         grid-template-columns: repeat(2, 1fr);  /* 2 columns */
-        gap: 20px;
+        gap: 15px;
         margin-top: 20px;
+        padding: 10px;
     }
     
     /* Make the button divs responsive */
@@ -79,17 +80,23 @@ st.markdown(
         width: 100%;
         height: 150px;
         border-radius: 12px;
-        font-size: 22px;
+        font-size: 18px;
         font-weight: bold;
         border: none;
         cursor: pointer;
     }
 
-    /* Additional styling to make it work well on mobile */
+    /* Mobile-first optimization */
     @media screen and (max-width: 600px) {
         .quadrant-container {
             grid-template-columns: repeat(2, 1fr);  /* Stack 2 columns horizontally */
-            grid-gap: 10px;  /* Adjust space between buttons */
+            grid-gap: 15px;  /* Adjust space between buttons */
+        }
+
+        /* Adjust button size on mobile */
+        .quadrant-button {
+            font-size: 18px;
+            height: 120px;
         }
     }
     </style>
@@ -104,7 +111,7 @@ for mood_key in MOODS:
     st.markdown(f"""
         <div class="quadrant-button" style="background-color: {COLORS[mood_key]};">
             <button style="width: 100%; height: 100%; background-color: transparent; 
-            color: black; font-size: 22px; font-weight: bold; border-radius: 12px; border: none;">
+            color: black; font-size: 18px; font-weight: bold; border-radius: 12px; border: none;">
                 {MOODS[mood_key]}
             </button>
         </div>
