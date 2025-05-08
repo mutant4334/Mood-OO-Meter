@@ -4,7 +4,6 @@ import os
 
 # Constants
 MOOD_FILE = "moods_data.json"
-PASSWORD = "owner123"
 MOODS = {
     "happy": "😊 Happy",
     "sad": "😢 Sad",
@@ -39,11 +38,11 @@ mood_data = load_data()
 st.set_page_config(layout="wide")
 st.markdown("<h4 style='text-align: center;'>Tap any quadrant to record your current mood</h4>", unsafe_allow_html=True)
 
-# Session state
+# Session state for real-time updates (no need to store names or identifiers)
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-# Create Quadrant Button
+# Function to handle quadrant button clicks and update mood data
 def quadrant_button(mood_key):
     color = COLORS[mood_key]
     label = MOODS[mood_key]
@@ -61,20 +60,17 @@ def quadrant_button(mood_key):
             save_data(mood_data)
 
 # Layout: 2x2 responsive on mobile only
-# CSS styling to ensure 2x2 layout on mobile screens
 st.markdown(
     """
     <style>
-    /* Ensure all quadrants are in a 2x2 grid */
     .quadrant-container {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);  /* 2 columns */
+        grid-template-columns: repeat(2, 1fr);
         gap: 15px;
         margin-top: 20px;
         padding: 10px;
     }
     
-    /* Make the button divs responsive */
     .quadrant-button {
         width: 100%;
         height: 150px;
@@ -85,14 +81,12 @@ st.markdown(
         cursor: pointer;
     }
 
-    /* Mobile-first optimization */
     @media screen and (max-width: 600px) {
         .quadrant-container {
-            grid-template-columns: repeat(2, 1fr);  /* Stack 2 columns horizontally */
-            grid-gap: 15px;  /* Adjust space between buttons */
+            grid-template-columns: repeat(2, 1fr);
+            grid-gap: 15px;
         }
 
-        /* Adjust button size on mobile */
         .quadrant-button {
             font-size: 18px;
             height: 120px;
@@ -123,10 +117,10 @@ if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
     st.success(f"✅ You selected: {MOODS[mood]}")
 
-# Admin Section
+# Admin Section (for mood statistics, no identifiers needed)
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
-    if password == PASSWORD:
+    if password == "owner123":  # Use the desired password for admin access
         st.subheader("📊 Mood Count")
         mood_data = load_data()
         for mood, count in mood_data.items():
