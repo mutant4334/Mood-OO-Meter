@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 
-# Constants
 MOOD_FILE = "moods_data.json"
 MOODS = {
     "high_energy_unpleasant": "😠 High Energy Unpleasant",
@@ -45,11 +44,8 @@ mood_data = load_data()
 st.set_page_config(layout="wide")
 st.markdown("<h4 style='text-align: center;'>How are you feeling today?</h4>", unsafe_allow_html=True)
 
-if "has_voted" not in st.session_state:
-    st.session_state["has_voted"] = False
-
 if "selected_mood" not in st.session_state:
-    st.session_state["selected_mood"] = None
+    st.session_state["selected_mood"] = None  # None means no vote yet
 
 st.markdown(
     """
@@ -71,7 +67,7 @@ st.markdown(
         cursor: pointer;
         transition: all 0.3s ease-in-out;
     }
-    .quadrant-button:hover {
+    .quadrant-button:hover:not(:disabled) {
         transform: scale(1.05);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
@@ -126,17 +122,21 @@ for mood_key in MOODS:
     label = MOODS[mood_key]
     color = COLORS.get(mood_key, "#FFFFFF")
 
-    # Disable buttons if user already voted
-    disabled = st.session_state["has_voted"]
+    # Disable all buttons if selected_mood is set, except the selected mood button itself
+    if st.session_state["selected_mood"] is None:
+        disabled = False
+    else:
+        disabled = (mood_key != st.session_state["selected_mood"])
 
     if st.button(label, key=mood_key, help=label, use_container_width=True, disabled=disabled):
-        st.session_state["selected_mood"] = mood_key
-        if mood_key in mood_data:
-            mood_data[mood_key] += 1
-            save_data(mood_data)
-            st.session_state["has_voted"] = True
-        else:
-            st.error("⚠️ Invalid mood key selected.")
+        # Only update if not voted yet
+        if st.session_state["selected_mood"] is None:
+            st.session_state["selected_mood"] = mood_key
+            if mood_key in mood_data:
+                mood_data[mood_key] += 1
+                save_data(mood_data)
+            else:
+                st.error("⚠️ Invalid mood key selected.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
