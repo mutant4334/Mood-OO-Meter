@@ -5,16 +5,16 @@ import os
 # Constants
 MOOD_FILE = "moods_data.json"
 MOODS = {
-    "high_unpleasant": "💢 High Energy Unpleasant",
-    "high_pleasant": "😄 High Energy Pleasant",
-    "low_unpleasant": "😞 Low Energy Unpleasant",
-    "low_pleasant": "😌 Low Energy Pleasant"
+    "high_energy_unpleasant": "😠 High Energy Unpleasant",
+    "high_energy_pleasant": "😄 High Energy Pleasant",
+    "low_energy_unpleasant": "😔 Low Energy Unpleasant",
+    "low_energy_pleasant": "😊 Low Energy Pleasant"
 }
 COLORS = {
-    "high_unpleasant": "#FF6961",
-    "high_pleasant": "#FFD700",
-    "low_unpleasant": "#87CEFA",
-    "low_pleasant": "#98FB98"
+    "high_energy_unpleasant": "#FF7F7F",   # red-ish
+    "high_energy_pleasant": "#FFD700",     # gold
+    "low_energy_unpleasant": "#87CEFA",    # light blue
+    "low_energy_pleasant": "#98FB98"       # light green
 }
 
 # Initialize or load mood data
@@ -36,13 +36,13 @@ mood_data = load_data()
 
 # Streamlit Page Setup
 st.set_page_config(layout="wide")
-st.markdown("<h4 style='text-align: center;'>How are you feeling today?</h4>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center;'>How are you feeling today?</h2>", unsafe_allow_html=True)
 
 # Session state for real-time updates
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-# Custom CSS
+# Styling and layout
 st.markdown(
     """
     <style>
@@ -111,12 +111,14 @@ st.markdown(
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
     </style>
-    """, unsafe_allow_html=True
+    """,
+    unsafe_allow_html=True
 )
 
-# Quadrant Layout
+# Create Quadrants in 2x2 grid
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
+# Quadrant Buttons
 for mood_key in MOODS:
     if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
         st.session_state["selected_mood"] = mood_key
@@ -130,7 +132,7 @@ if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
     st.success(f"✅ You selected: {MOODS[mood]}")
 
-# Admin Section (for mood statistics, no identifiers needed)
+# Admin Section (for mood statistics)
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
     if password == "owner123":
@@ -142,8 +144,8 @@ with st.expander("🔒 View Mood Summary"):
                 f"<strong>{MOODS.get(mood, 'Unknown Mood')}</strong>: {count}</div>",
                 unsafe_allow_html=True
             )
-        if st.button("🔁 Reset All Moods", key="reset", help="Reset all mood counts", 
-                     use_container_width=True, on_click=lambda: save_data({m: 0 for m in MOODS})):
+        if st.button("🔁 Reset All Moods", key="reset", help="Reset all mood counts", use_container_width=True):
+            save_data({m: 0 for m in MOODS})
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
