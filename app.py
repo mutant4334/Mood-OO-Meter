@@ -2,7 +2,6 @@ import streamlit as st
 import json
 import os
 
-# Constants
 MOOD_FILE = "moods_data.json"
 MOODS = {
     "high_energy_unpleasant": "😠 High Energy Unpleasant",
@@ -12,13 +11,12 @@ MOODS = {
 }
 
 COLORS = {
-    "high_energy_unpleasant": "#FFA07A",  # Light Salmon (angry-ish)
-    "high_energy_pleasant": "#90EE90",    # Light Green (happy-ish)
-    "low_energy_unpleasant": "#ADD8E6",   # Light Blue (sad-ish)
-    "low_energy_pleasant": "#FFB6C1"      # Light Pink (calm-ish)
+    "high_energy_unpleasant": "#FFA07A",
+    "high_energy_pleasant": "#90EE90",
+    "low_energy_unpleasant": "#ADD8E6",
+    "low_energy_pleasant": "#FFB6C1"
 }
 
-# Initialize or load mood data
 def initialize_data():
     if not os.path.exists(MOOD_FILE):
         with open(MOOD_FILE, "w") as f:
@@ -35,90 +33,81 @@ def save_data(data):
 initialize_data()
 mood_data = load_data()
 
-# Streamlit Page Setup
 st.set_page_config(layout="wide")
 st.markdown("<h4 style='text-align: center;'>How are you feeling today?</h4>", unsafe_allow_html=True)
 
-# Session state for real-time updates
+st.markdown("""
+<style>
+.quadrant-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+.quadrant-button {
+    width: 100%;
+    height: 150px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.quadrant-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+@media screen and (max-width: 600px) {
+    .quadrant-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    .quadrant-button {
+        font-size: 18px;
+        height: 120px;
+    }
+}
+
+.reset-button {
+    background-color: #f44b42;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.reset-button:hover {
+    background-color: #e0372e;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.selected-mood {
+    padding: 10px;
+    font-size: 18px;
+    color: #444;
+    background-color: #ffffff;
+    border-radius: 10px;
+    margin-top: 20px;
+    border: 1px solid #d1d1d1;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+</style>
+""", unsafe_allow_html=True)
+
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-# CSS styling
-st.markdown(
-    """
-    <style>
-    .quadrant-container {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-        margin-top: 20px;
-        padding: 10px;
-    }
-
-    .quadrant-button {
-        width: 100%;
-        height: 150px;
-        border-radius: 12px;
-        font-size: 18px;
-        font-weight: bold;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease-in-out;
-    }
-
-    .quadrant-button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    @media screen and (max-width: 600px) {
-        .quadrant-container {
-            grid-template-columns: repeat(2, 1fr);
-            grid-gap: 15px;
-        }
-
-        .quadrant-button {
-            font-size: 18px;
-            height: 120px;
-        }
-    }
-
-    .reset-button {
-        background-color: #f44b42;
-        color: white;
-        padding: 10px;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: none;
-    }
-
-    .reset-button:hover {
-        background-color: #e0372e;
-        transform: scale(1.05);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .selected-mood {
-        padding: 10px;
-        font-size: 18px;
-        color: #444;
-        background-color: #ffffff;
-        border-radius: 10px;
-        margin-top: 20px;
-        border: 1px solid #d1d1d1;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
-# Create Quadrants container
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
-
-# Quadrant Buttons with safe update
 for mood_key in MOODS:
     button_style = f"background-color: {COLORS.get(mood_key, '#FFFFFF')};"
     if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
@@ -130,12 +119,10 @@ for mood_key in MOODS:
             st.error("⚠️ Invalid mood key selected.")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Show selected mood
 if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
     st.success(f"✅ You selected: {MOODS[mood]}")
 
-# Admin Section (for mood statistics)
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
     if password == "owner123":
