@@ -5,16 +5,16 @@ import os
 # Constants
 MOOD_FILE = "moods_data.json"
 MOODS = {
-    "happy": "😊 Happy",
-    "sad": "😢 Sad",
-    "angry": "😠 Angry",
-    "calm": "😌 Calm"
+    "high_unpleasant": "💢 High Energy Unpleasant",
+    "high_pleasant": "😄 High Energy Pleasant",
+    "low_unpleasant": "😞 Low Energy Unpleasant",
+    "low_pleasant": "😌 Low Energy Pleasant"
 }
 COLORS = {
-    "happy": "#FFB6C1",
-    "sad": "#ADD8E6",
-    "angry": "#FFA07A",
-    "calm": "#90EE90"
+    "high_unpleasant": "#FF6961",
+    "high_pleasant": "#FFD700",
+    "low_unpleasant": "#87CEFA",
+    "low_pleasant": "#98FB98"
 }
 
 # Initialize or load mood data
@@ -36,23 +36,13 @@ mood_data = load_data()
 
 # Streamlit Page Setup
 st.set_page_config(layout="wide")
-st.markdown("<h4 style='text-align: center;'>How are you feeling today</h4>", unsafe_allow_html=True)
-st.markdown("<h5 style='text-align: center; font-weight: bold;'>Anonymous | Realtime | Secure</h5>", unsafe_allow_html=True)
+st.markdown("<h4 style='text-align: center;'>How are you feeling today?</h4>", unsafe_allow_html=True)
 
 # Session state for real-time updates
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-# Function to handle quadrant button clicks and update mood data
-def quadrant_button(mood_key):
-    color = COLORS.get(mood_key, "#FFFFFF")  # Default to white if the key is not found
-    label = MOODS.get(mood_key, "Unknown Mood")  # Default to "Unknown Mood" if the key is not found
-    if st.button(label, key=mood_key, help=label, use_container_width=True):
-        st.session_state["selected_mood"] = mood_key
-        mood_data[mood_key] += 1
-        save_data(mood_data)
-
-# Layout: 2x2 responsive on mobile only
+# Custom CSS
 st.markdown(
     """
     <style>
@@ -120,15 +110,13 @@ st.markdown(
         border: 1px solid #d1d1d1;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
-
     </style>
     """, unsafe_allow_html=True
 )
 
-# Create Quadrants in 2x2 grid using the CSS class `quadrant-container`
+# Quadrant Layout
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
-# Quadrant Buttons
 for mood_key in MOODS:
     if st.button(MOODS[mood_key], key=mood_key, help=MOODS[mood_key], use_container_width=True):
         st.session_state["selected_mood"] = mood_key
@@ -145,7 +133,7 @@ if st.session_state["selected_mood"]:
 # Admin Section (for mood statistics, no identifiers needed)
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
-    if password == "owner123":  # Use the desired password for admin access
+    if password == "owner123":
         st.subheader("📊 Mood Count")
         mood_data = load_data()
         for mood, count in mood_data.items():
@@ -154,11 +142,11 @@ with st.expander("🔒 View Mood Summary"):
                 f"<strong>{MOODS.get(mood, 'Unknown Mood')}</strong>: {count}</div>",
                 unsafe_allow_html=True
             )
-        # Colorful Reset Button
         if st.button("🔁 Reset All Moods", key="reset", help="Reset all mood counts", 
                      use_container_width=True, on_click=lambda: save_data({m: 0 for m in MOODS})):
             st.success("✅ Mood counts reset.")
     elif password:
         st.error("❌ Incorrect password.")
+
 st.markdown("---")
 st.markdown("**Team Culture | Leadership Development | Talent**")
