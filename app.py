@@ -11,13 +11,12 @@ MOODS = {
     "low_energy_pleasant": "😊 Low Energy Pleasant"
 }
 COLORS = {
-    "high_energy_unpleasant": "#FFA07A",  # Light Salmon
-    "high_energy_pleasant": "#90EE90",    # Light Green
-    "low_energy_unpleasant": "#ADD8E6",   # Light Blue
-    "low_energy_pleasant": "#FFB6C1"      # Light Pink
+    "high_energy_unpleasant": "#FFA07A",
+    "high_energy_pleasant": "#90EE90",
+    "low_energy_unpleasant": "#ADD8E6",
+    "low_energy_pleasant": "#FFB6C1"
 }
 
-# Initialize or load mood data, and fix keys if needed
 def initialize_data():
     if not os.path.exists(MOOD_FILE):
         with open(MOOD_FILE, "w") as f:
@@ -43,15 +42,15 @@ def save_data(data):
 initialize_data()
 mood_data = load_data()
 
-# Streamlit Page Setup
 st.set_page_config(layout="wide")
 st.markdown("<h4 style='text-align: center;'>How are you feeling today?</h4>", unsafe_allow_html=True)
 
-# Session state for real-time updates
+if "has_voted" not in st.session_state:
+    st.session_state["has_voted"] = False
+
 if "selected_mood" not in st.session_state:
     st.session_state["selected_mood"] = None
 
-# CSS styling
 st.markdown(
     """
     <style>
@@ -75,6 +74,10 @@ st.markdown(
     .quadrant-button:hover {
         transform: scale(1.05);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .quadrant-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
     }
     @media screen and (max-width: 600px) {
         .quadrant-container {
@@ -117,32 +120,34 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# Quadrant buttons layout
 st.markdown('<div class="quadrant-container">', unsafe_allow_html=True)
 
 for mood_key in MOODS:
     label = MOODS[mood_key]
     color = COLORS.get(mood_key, "#FFFFFF")
-    # Use st.button with key and help, but style is handled by CSS
-    if st.button(label, key=mood_key, help=label, use_container_width=True):
+
+    # Disable buttons if user already voted
+    disabled = st.session_state["has_voted"]
+
+    if st.button(label, key=mood_key, help=label, use_container_width=True, disabled=disabled):
         st.session_state["selected_mood"] = mood_key
         if mood_key in mood_data:
             mood_data[mood_key] += 1
             save_data(mood_data)
+            st.session_state["has_voted"] = True
         else:
             st.error("⚠️ Invalid mood key selected.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
-# Show selected mood
 if st.session_state["selected_mood"]:
     mood = st.session_state["selected_mood"]
     st.markdown(f"<div class='selected-mood'>✅ You selected: {MOODS[mood]}</div>", unsafe_allow_html=True)
 
-# Admin Section (for mood statistics)
+# Admin Section
 with st.expander("🔒 View Mood Summary"):
     password = st.text_input("Enter password to view results:", type="password")
-    if password == "owner123":  # Admin password
+    if password == "owner123":
         st.subheader("📊 Mood Count")
         mood_data = load_data()
         for mood, count in mood_data.items():
